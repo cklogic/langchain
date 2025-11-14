@@ -10,7 +10,7 @@ import string
 import time
 from dataclasses import asdict
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, Optional
 
 import yaml
 
@@ -281,6 +281,7 @@ def draw_mermaid_png(
     max_retries: int = 1,
     retry_delay: float = 1.0,
     base_url: str | None = None,
+    proxies: Optional[dict] = None,
 ) -> bytes:
     """Draws a Mermaid graph as PNG using provided syntax.
 
@@ -293,6 +294,7 @@ def draw_mermaid_png(
         max_retries: Maximum number of retries (MermaidDrawMethod.API).
         retry_delay: Delay between retries (MermaidDrawMethod.API).
         base_url: Base URL for the Mermaid.ink API.
+        proxies (dict, optional): HTTP/HTTPS proxies for requests, e.g. {"http": "http://127.0.0.1:7890", "https": "http://127.0.0.1:7890"}. Defaults to None.
 
     Returns:
         PNG image bytes.
@@ -314,6 +316,7 @@ def draw_mermaid_png(
             max_retries=max_retries,
             retry_delay=retry_delay,
             base_url=base_url,
+            proxies=proxies,
         )
     else:
         supported_methods = ", ".join([m.value for m in MermaidDrawMethod])
@@ -405,6 +408,7 @@ def _render_mermaid_using_api(
     file_type: Literal["jpeg", "png", "webp"] | None = "png",
     max_retries: int = 1,
     retry_delay: float = 1.0,
+    proxies: Optional[dict] = None,
     base_url: str | None = None,
 ) -> bytes:
     """Renders Mermaid graph using the Mermaid.INK API."""
@@ -445,7 +449,7 @@ def _render_mermaid_using_api(
 
     for attempt in range(max_retries + 1):
         try:
-            response = requests.get(image_url, timeout=10)
+            response = requests.get(image_url, timeout=10, proxies=proxies)
             if response.status_code == requests.codes.ok:
                 img_bytes = response.content
                 if output_file_path is not None:
